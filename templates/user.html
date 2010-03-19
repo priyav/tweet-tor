@@ -1,0 +1,46 @@
+<html>
+<head>
+    <title>User Tweets</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript" charset="utf-8">
+    var username = '{{username}}';
+    $('document').ready(function(){
+        $('.follow').live('click', function(){
+            var button = $(this);
+            $.post("/follow",{dest_name: username}, function(data){
+                var status = $.parseJSON(data);
+                if (status.status=='success') {
+                    $('#message p').html(status.message);
+                    button.html('unfollow');
+                    button.toggleClass('follow');
+                    button.toggleClass('unfollow');
+                }
+            });
+            return false;  
+        });
+        $('.unfollow').live('click', function(){
+            $.post('/unfollow',{dest_name: username}, function(data){
+               var status = $.parseJSON(data);
+               if (status.status=='success') {
+                   $('#message p').html(status.message);
+                   button.html('follow');
+                   button.toggleClass('unfollow');
+                   button.toggleClass('follow');
+               } 
+            });
+        return false;    
+        });
+    });
+    </script>
+</head>
+<body>
+    <a href="/follow" class="follow">Follow</a>
+    <a href="/logout">Logout</a>
+    <div id="message">
+        <strong><p></p></strong>
+    </div>
+    {% for tweet in tweets %}
+        <p>{{tweet}}</p>
+    {% end %}
+</body>
+</html>

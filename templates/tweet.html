@@ -1,0 +1,45 @@
+<html>
+<head>
+    <title>Tweet Screen</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="/static/json2.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript" charset="utf-8">
+        $('document').ready(function(){
+             $('input[type=submit]').click(function(){
+                $.post('/',{content: $('textarea').val(), _xsrf: $('input[name=_xsrf]').val()},function(data){
+                    var status = JSON.parse(data)
+                    if(status.status == 'success'){
+                        var now = new Date();
+                        var clone_tweet = $('#tweet').clone();
+                        clone_tweet.removeAttr('id');
+                        clone_tweet.attr('class','mock_tweet');
+                        clone_tweet.find('p').html($('textarea').val());
+                        clone_tweet.find('span').html(now);
+                        clone_tweet.appendTo($('#tweetpage'));
+                        $('textarea').val('');
+                    }
+                    else {alert('hi');}
+                });
+             return false;
+             });
+        });
+    </script>
+</head>
+<body>
+    <a href="/logout">Logout</a>
+    <form action="" method="POST">
+        <textarea name="content" rows="8" cols="40"></textarea>
+        <input type="submit" value="tweet">
+        {{ xsrf_form_html() }}
+    </form>
+    <div id="tweetpage">
+        <div id="tweet">
+            <p></p>
+            <span></span>
+        </div>
+    </div>
+    {% for tweet in tweets %}
+        <p>{{tweet}}</p>
+    {% end %}
+</body>
+</html>

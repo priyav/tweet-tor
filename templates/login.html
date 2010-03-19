@@ -1,0 +1,17 @@
+<html>
+<head>
+    <title>login</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="/static/json2.js" type="text/javascript" charset="utf-8"></script>
+</head>
+<body>
+<form action="" method="POST">
+    <label>Username</label>
+    <input type="text" name="username">
+    <label>Password</label>
+    <input type="password" name="password">
+    <input type="submit" name="login" value="login">
+     {{ xsrf_form_html() }}
+</form>
+</body>
+</html>
