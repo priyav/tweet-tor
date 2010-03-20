@@ -5,37 +5,53 @@
     <script type="text/javascript" charset="utf-8">
     var username = '{{username}}';
     $('document').ready(function(){
-        $('.follow').live('click', function(){
-            var button = $(this);
-            $.post("/follow",{dest_name: username}, function(data){
-                var status = $.parseJSON(data);
-                if (status.status=='success') {
-                    $('#message p').html(status.message);
-                    button.html('unfollow');
-                    button.toggleClass('follow');
-                    button.toggleClass('unfollow');
-                }
+        {% if current_user %}
+            $('.follow').live('click', function(){
+                var button = $(this);
+                $.post("/follow",{dest_name: username}, function(data){
+                    var status = $.parseJSON(data);
+                    if (status.status=='success') {
+                        $('#message p').html(status.message);
+                        button.html('unfollow');
+                        button.toggleClass('follow');
+                        button.toggleClass('unfollow');
+                    }
+                });
+                return false;
             });
-            return false;  
-        });
-        $('.unfollow').live('click', function(){
-            $.post('/unfollow',{dest_name: username}, function(data){
-               var status = $.parseJSON(data);
-               if (status.status=='success') {
-                   $('#message p').html(status.message);
-                   button.html('follow');
-                   button.toggleClass('unfollow');
-                   button.toggleClass('follow');
-               } 
+            $('.unfollow').live('click', function(){
+                var button = $(this);
+                $.post('/unfollow',{dest_name: username}, function(data){
+                   var status = $.parseJSON(data);
+                   if (status.status=='success') {
+                       $('#message p').html(status.message);
+                       button.html('follow');
+                       button.toggleClass('unfollow');
+                       button.toggleClass('follow');
+                   } 
+                });
+            return false;    
             });
-        return false;    
-        });
+        {% else %}
+            $('.login').live('click', function(){
+               window.location = "http://localhost:8888/login"
+            return false;
+            });
+        {% end %}
     });
     </script>
 </head>
 <body>
-    <a href="/follow" class="follow">Follow</a>
-    <a href="/logout">Logout</a>
+    {% if follow_flag %}
+        <a href="/unfollow" class="unfollow">Un-Follow</a>
+    {% else %}
+        <a href="/follow" class="{% if current_user %}follow{% else %}login{% end %}">Follow</a>
+    {% end %}
+    {% if current_user %}
+        <a href="/logout">Logout</a>
+    {% else %}
+        <a href="/login">Login</a>
+    {% end %}
     <div id="message">
         <strong><p></p></strong>
     </div>

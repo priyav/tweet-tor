@@ -97,12 +97,21 @@ class LogoutHandler(BaseHandler):
 
 class UserHandler(BaseHandler):
     def get(self, username):
+        follow_flag=None
+        if self.current_user:
+            src_id = self.current_user 
+            follow_flag = self.db.get("SELECT active from follow,user WHERE follow.src_id=%s AND follow.dest_id=user.id AND user.username=%s",src_id, username)
+            try:
+                follow_flag = follow_flag['active']
+            except:
+                follow_flag = follow_flag
         output = self.db.get("SELECT username from user WHERE username=%s LIMIT 1", username)
         if not output: raise tornado.web.HTTPError(404)
         user_tweets=self.db.query("SELECT content FROM tweet,user WHERE tweet.user_id=user.id AND user.username=%s ORDER BY pub_date DESC", username)
         tweets=[]
         for item in user_tweets: tweets.append(item['content'])
-        return self.render("user.html", tweets=tweets, username=username)
+        return self.render("user.html", tweets=tweets, username=username, follow_flag=follow_flag)
+    
        
 class FollowHandler(BaseHandler):
     @tornado.web.authenticated
