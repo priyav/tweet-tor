@@ -22,7 +22,16 @@
                 });
              return false;
              });
-        });
+             $('textarea').keyup(function(){
+                 var text_length = $('textarea').val().length;
+                 var max_length = 140;
+                 if (text_length > max_length){
+                     var tweet = $('textarea').val().substring(0, max_length);
+                     $('textarea').val(tweet);
+                    }
+                 return false;
+             });
+        }); 
     </script>
 </head>
 <body>
@@ -39,7 +48,9 @@
         </div>
     </div>
     {% for tweet in tweets %}
-        <p>{{tweet}}</p>
+        <p>{{tweet['content']}}</p>
+        <span>{{tweet['pub_date'].strftime("%a, %d %b %Y %H:%M %p")}}</span>
+        <span>{{tweet['username']}}</span>
     {% end %}
 </body>
 </html>

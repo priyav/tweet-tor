@@ -32,7 +32,6 @@ class Application(tornado.web.Application):
         settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),
-            #ui_modules={"Entry": EntryModule},
             xsrf_cookies=True,
             cookie_secret="11oETzKXQAGaYdkL5gEmGeJJFuYh7EQnp2XdTP1o/Vo=",
             login_url="/login",
@@ -55,12 +54,8 @@ class MainHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
         user_id=self.current_user
-        user_tweets=self.db.query("SELECT content FROM tweet WHERE user_id=%s ORDER BY pub_date DESC", user_id)
-        if not user_tweets:
-            self.write("So far no tweets...Why dont you tweet now?")
-        tweets=[]
-        for item in user_tweets: tweets.append(item['content'])
-        return self.render("tweet.html", tweets=tweets)
+        following_tweets=self.db.query("SELECT tweet.content,tweet.pub_date,user.username FROM tweet,follow,user WHERE follow.dest_id=tweet.user_id AND follow.src_id=%s AND user.id=tweet.user_id ORDER BY tweet.pub_date DESC", user_id)
+        return self.render("tweet.html", tweets=following_tweets)
         
     @tornado.web.authenticated    
     def post(self):
