@@ -6,6 +6,10 @@ import tornado.escape
 import tornado.auth
 import os
 import logging
+import PIL 
+from PIL import Image
+import imghdr
+import StringIO
 from tornado.options import define, options
 from hashlib import md5
 
@@ -143,13 +147,16 @@ class ImageHandler(BaseHandler):
     def post(self):
         user_id=self.current_user
         username = self.db.get("SELECT username from user WHERE id=%s", user_id)
-        avatar=self.request.files
-        filename = username['username']+'.jpg'
-        path_to_save = os.path.join(PROJECT_ROOT, 'static', 'avatars', filename)
-        image_file=open(path_to_save, 'w')
-        image_file.write(avatar['avatar'][0]['body'])
-        image_file.close()
-        return self.write("Successfully uploaded the image")
+        uploaded_image=self.request.files
+        if imghdr.what('ignore', uploaded_image['avatar'][0]['body']) in ['jpeg','png']:
+            avatar = Image.open(StringIO.StringIO(uploaded_image['avatar'][0]['body']))
+            avatar.thumbnail((150,150))
+            filename = username['username']+'.jpg'
+            path_to_save = os.path.join(PROJECT_ROOT, 'static', 'avatars', filename)
+            avatar.save(path_to_save)
+            self.db.execute("UPDATE user SET user_thumbnail=%s WHERE id=%s", path_to_save, user_id)
+            return self.write("Successfully uploaded the image")
+        else: return self.write("file format is not accepted")
         
 if __name__ == "__main__":
     http_server = tornado.httpserver.HTTPServer(Application())
