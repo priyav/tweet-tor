@@ -15,7 +15,7 @@
                         clone_tweet.attr('class','mock_tweet');
                         clone_tweet.find('p').html($('textarea').val());
                         clone_tweet.find('span').html(now);
-                        clone_tweet.appendTo($('#tweetpage'));
+                        clone_tweet.prependTo($('#tweetpage'));
                         $('textarea').val('');
                     }
                     else {alert('hi');}

@@ -1,0 +1,11 @@
+<html>
+<head><title>image</title></head>
+<body>
+    <form action="/image" method="post" enctype="multipart/form-data" accept-charset="utf-8">
+        <label>.jpg, .png file formats are accepted</label> </br>
+        <input type="file" name="avatar">
+        {{ xsrf_form_html() }}
+        <input type="submit" value="Upload">
+    </form>
+</body>
+</html>

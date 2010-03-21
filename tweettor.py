@@ -5,10 +5,11 @@ import tornado.database
 import tornado.escape
 import tornado.auth
 import os
-import copy
 import logging
 from tornado.options import define, options
 from hashlib import md5
+
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
    
 define("port", default=8888, help="run on the given port", type=int)
 define("mysql_host", default="127.0.0.1:3306", help="database host")
@@ -23,6 +24,7 @@ class Application(tornado.web.Application):
             (r"/login", LoginHandler),
             (r"/follow", FollowHandler),
             (r"/unfollow", UnfollowHandler),
+            (r"/image", ImageHandler),
             (r"/logout", LogoutHandler),
             (r"/([\w\.\-]+)", UserHandler),
             # (r"/entry/([^/]+)", EntryHandler),
@@ -132,7 +134,23 @@ class UnfollowHandler(BaseHandler):
         self.db.execute("UPDATE follow SET active=0 WHERE src_id=%s AND dest_id=%s", src_id,dest_id['id'])
         return self.finish({'status': 'success', 'message': 'You are not following '+dest_name})
 
-
+class ImageHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self):
+        return self.render("image.html")
+    
+    @tornado.web.authenticated
+    def post(self):
+        user_id=self.current_user
+        username = self.db.get("SELECT username from user WHERE id=%s", user_id)
+        avatar=self.request.files
+        filename = username['username']+'.jpg'
+        path_to_save = os.path.join(PROJECT_ROOT, 'static', 'avatars', filename)
+        image_file=open(path_to_save, 'w')
+        image_file.write(avatar['avatar'][0]['body'])
+        image_file.close()
+        return self.write("Successfully uploaded the image")
+        
 if __name__ == "__main__":
     http_server = tornado.httpserver.HTTPServer(Application())
     http_server.listen(8888)
