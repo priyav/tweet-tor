@@ -12,6 +12,7 @@ import imghdr
 import StringIO
 from tornado.options import define, options
 from hashlib import md5
+import copy
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
    
@@ -60,8 +61,9 @@ class MainHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
         user_id=self.current_user
-        following_tweets=self.db.query("SELECT tweet.content,tweet.pub_date,user.username FROM tweet,follow,user WHERE follow.dest_id=tweet.user_id AND follow.src_id=%s AND user.id=tweet.user_id ORDER BY tweet.pub_date DESC", user_id)
-        return self.render("tweet.html", tweets=following_tweets)
+        following_tweets=self.db.query("SELECT tweet.content,tweet.pub_date,user.username,user.user_thumbnail FROM tweet,follow,user WHERE follow.dest_id=tweet.user_id AND follow.src_id=%s AND user.id=tweet.user_id ORDER BY tweet.pub_date DESC", user_id)
+        following_users=self.db.query("SELECT * from user where id in (SELECT dest_id from follow WHERE src_id=%s)", user_id)
+        return self.render("tweet.html", tweets=following_tweets, following_users=following_users)
         
     @tornado.web.authenticated    
     def post(self):
@@ -150,11 +152,16 @@ class ImageHandler(BaseHandler):
         uploaded_image=self.request.files
         if imghdr.what('ignore', uploaded_image['avatar'][0]['body']) in ['jpeg','png']:
             avatar = Image.open(StringIO.StringIO(uploaded_image['avatar'][0]['body']))
-            avatar.thumbnail((150,150))
+            avatar_mini = copy.copy(avatar)
+            avatar.thumbnail((48,48))
+            avatar_mini.thumbnail((24,24))
             filename = username['username']+'.jpg'
-            path_to_save = os.path.join(PROJECT_ROOT, 'static', 'avatars', filename)
+            minifilename = username['username']+'_mini'+'.jpg'
+            path_to_save = os.path.join('static', 'avatars', filename)
+            path_to_mininail = os.path.join('static', 'avatars', minifilename)
             avatar.save(path_to_save)
-            self.db.execute("UPDATE user SET user_thumbnail=%s WHERE id=%s", path_to_save, user_id)
+            avatar_mini.save(path_to_mininail)
+            self.db.execute("UPDATE user SET user_thumbnail=%s, user_mininail=%s WHERE id=%s", path_to_save, path_to_mininail, user_id)
             return self.write("Successfully uploaded the image")
         else: return self.write("file format is not accepted")
         

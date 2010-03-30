@@ -1,6 +1,7 @@
 <html>
 <head>
     <title>Tweet Screen</title>
+    <link rel="stylesheet" href="static/css/master.css" type="text/css" media="screen" charset="utf-8">
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="/static/json2.js" type="text/javascript" charset="utf-8"></script>
     <script type="text/javascript" charset="utf-8">
@@ -47,10 +48,19 @@
             <span></span>
         </div>
     </div>
+    <div id="following_list">
+    <h4>following<h4>
+    {% for following_user in following_users %}
+        <img src={{following_user['user_mininail']}}>
+    {% end %}
+    </div>
+    <div id="tweet_list">
     {% for tweet in tweets %}
+        <img src={{tweet['user_thumbnail']}}>
         <p>{{tweet['content']}}</p>
         <span>{{tweet['pub_date'].strftime("%a, %d %b %Y %H:%M %p")}}</span>
         <span>{{tweet['username']}}</span>
     {% end %}
+    </div>
 </body>
 </html>
