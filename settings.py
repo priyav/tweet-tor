@@ -1,0 +1,4 @@
+MYSQL_HOST = '127.0.0.1:3306'
+MYSQL_DATABASE = 'tweet_db'
+MYSQL_USER = 'root'
+MYSQL_PASSWORD = ''

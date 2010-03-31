@@ -13,14 +13,18 @@ import StringIO
 from tornado.options import define, options
 from hashlib import md5
 import copy
+from pyres import ResQ
+from tasks import *
+from settings import *
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+r = ResQ()
    
 define("port", default=8888, help="run on the given port", type=int)
-define("mysql_host", default="127.0.0.1:3306", help="database host")
-define("mysql_database", default="tweet_db", help="dataabase name")
-define("mysql_user", default="root", help="database user")
-define("mysql_password", default="", help="database password")
+define("mysql_host", default=MYSQL_HOST, help="database host")
+define("mysql_database", default=MYSQL_DATABASE, help="dataabase name")
+define("mysql_user", default=MYSQL_USER, help="database user")
+define("mysql_password", default=MYSQL_PASSWORD, help="database password")
  
 class Application(tornado.web.Application):
     def __init__(self):
@@ -145,6 +149,7 @@ class ImageHandler(BaseHandler):
     def get(self):
         return self.render("image.html")
     
+# Saving the original image to the disk on static/uploaded_images with username_original.jpg as filename.       
     @tornado.web.authenticated
     def post(self):
         user_id=self.current_user
@@ -152,32 +157,13 @@ class ImageHandler(BaseHandler):
         uploaded_image=self.request.files
         if imghdr.what('ignore', uploaded_image['avatar'][0]['body']) in ['jpeg','png']:
             avatar = Image.open(StringIO.StringIO(uploaded_image['avatar'][0]['body']))
-            width, height = avatar.size
-            if width > height:
-                delta = width - height
-                left = int(delta/2)
-                upper = 0
-                right = height + left
-                lower = height
-            else:
-                delta = height - width
-                left = int(delta)/2
-                upper = 0
-                right = width
-                lower = width + upper
-            avatar_square = avatar.crop((left, upper, right, lower))
-            avatar_mini = copy.copy(avatar_square)
-            avatar_square.thumbnail((48,48))
-            avatar_mini.thumbnail((24,24))
-            filename = username['username']+'.jpg'
-            minifilename = username['username']+'_mini'+'.jpg'
-            path_to_save = os.path.join('static', 'avatars', filename)
-            path_to_mininail = os.path.join('static', 'avatars', minifilename)
-            avatar_square.save(path_to_save)
-            avatar_mini.save(path_to_mininail)
-            self.db.execute("UPDATE user SET user_thumbnail=%s, user_mininail=%s WHERE id=%s", path_to_save, path_to_mininail, user_id)
+            uploaded_filename = username['username']+'_original'+'.jpg'
+            path_to_original = os.path.join('static','uploaded_images', uploaded_filename)
+            avatar.save(path_to_original)
+            r.enqueue(ImageQueue, path_to_original, username, user_id)
             return self.write("Successfully uploaded the image")
         else: return self.write("file format is not accepted")
+       
         
 if __name__ == "__main__":
     http_server = tornado.httpserver.HTTPServer(Application())
