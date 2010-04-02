@@ -18,7 +18,8 @@ from tasks import *
 from settings import *
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-r = ResQ()
+# pyres message queue
+r = ResQ() 
    
 define("port", default=8888, help="run on the given port", type=int)
 define("mysql_host", default=MYSQL_HOST, help="database host")
@@ -99,7 +100,7 @@ class LoginHandler(BaseHandler):
 
 class LogoutHandler(BaseHandler):
     def get(self):
-        self.clear_all_cookies()
+        self.clear_cookie('user_id')
         self.redirect("/")
 
 class UserHandler(BaseHandler):
@@ -114,10 +115,8 @@ class UserHandler(BaseHandler):
                 follow_flag = follow_flag
         output = self.db.get("SELECT username from user WHERE username=%s LIMIT 1", username)
         if not output: raise tornado.web.HTTPError(404)
-        user_tweets=self.db.query("SELECT content FROM tweet,user WHERE tweet.user_id=user.id AND user.username=%s ORDER BY pub_date DESC", username)
-        tweets=[]
-        for item in user_tweets: tweets.append(item['content'])
-        return self.render("user.html", tweets=tweets, username=username, follow_flag=follow_flag)
+        user_tweets=self.db.query("SELECT tweet.content,user.user_thumbnail FROM tweet,user WHERE tweet.user_id=user.id AND user.username=%s ORDER BY pub_date DESC", username)
+        return self.render("user.html", tweets=user_tweets, username=username, follow_flag=follow_flag)
     
        
 class FollowHandler(BaseHandler):
@@ -149,7 +148,8 @@ class ImageHandler(BaseHandler):
     def get(self):
         return self.render("image.html")
     
-# Saving the original image to the disk on static/uploaded_images with username_original.jpg as filename.       
+# Saving the original image to the disk on static/uploaded_images with username_original.jpg as filename. 
+# Pass the original image to the message queue for resizing thumbnail and mininail      
     @tornado.web.authenticated
     def post(self):
         user_id=self.current_user

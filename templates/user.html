@@ -55,8 +55,12 @@
     <div id="message">
         <strong><p></p></strong>
     </div>
+    {% if tweets %}
+    <img src="{{tweets[0]['user_thumbnail']}}">
+    {% end %}
+    <strong>{{username}}</strong>
     {% for tweet in tweets %}
-        <p>{{tweet}}</p>
+        <p>{{tweet['content']}}</p>
     {% end %}
 </body>
 </html>
